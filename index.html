@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Описание зоны ответственности члена Совета директоров</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --paper:#FAF8F3; --paper-dim:#F1EBDF; --card:#FFFFFF;
+    --ink:#23241F; --ink-soft:#5B5A52; --ink-faint:#8B8A80;
+    --line:#DCD4C2; --line-strong:#C7BCA3;
+    --accent:#7C5A2E; --accent-deep:#54391A;
+    --slate:#3E5C76; --slate-soft:#E4EAEF;
+    --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'IBM Plex Sans',sans-serif; font-size:15px; line-height:1.55;}
+  h1,h2,h3{font-family:'Fraunces',serif; font-weight:600; letter-spacing:-0.01em; margin:0;}
+
+  #gate{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px 20px;}
+  .gate-card{max-width:560px; width:100%; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:44px 40px;}
+  .gate-eyebrow{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--accent); margin-bottom:14px;}
+  .gate-card h1{font-size:24px; line-height:1.3; margin-bottom:16px;}
+  .gate-intro{color:var(--ink-soft); font-size:13.5px; line-height:1.6; margin-bottom:28px; padding:16px 18px; background:var(--paper-dim); border-radius:var(--radius);}
+  .field{margin-bottom:18px;}
+  .field label{display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--ink);}
+  input[type=text],select,textarea{
+    width:100%; font-family:inherit; font-size:14px; color:var(--ink); background:var(--paper);
+    border:1px solid var(--line-strong); border-radius:var(--radius); padding:10px 12px; outline:none;
+  }
+  textarea{resize:vertical; min-height:58px; line-height:1.5;}
+  input:focus,select:focus,textarea:focus{border-color:var(--slate); box-shadow:0 0 0 3px var(--slate-soft);}
+  .btn{display:inline-flex; align-items:center; gap:8px; font-family:inherit; font-size:14px; font-weight:600; padding:11px 20px; border-radius:var(--radius); border:1px solid transparent; cursor:pointer;}
+  .btn-primary{background:var(--accent-deep); color:#fff;}
+  .btn-primary:hover{background:#3f2a12;}
+  .btn-ghost{background:transparent; color:var(--ink); border-color:var(--line-strong);}
+  .btn-ghost:hover{background:var(--paper-dim);}
+  .btn-small{padding:6px 12px; font-size:12.5px;}
+  .gate-existing{margin-top:26px; padding-top:22px; border-top:1px solid var(--line);}
+  .gate-existing h3{font-size:13px; color:var(--ink-soft); font-weight:600; margin-bottom:10px;}
+  .resp-row{display:flex; align-items:center; justify-content:space-between; padding:8px 0; font-size:13.5px; border-bottom:1px dashed var(--line);}
+  .resp-row:last-child{border-bottom:none;}
+  .resp-row button{background:none; border:none; color:var(--slate); font-family:inherit; font-size:13px; cursor:pointer; font-weight:600;}
+
+  #app{display:none;}
+  .topbar{position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; background:var(--paper); border-bottom:1px solid var(--line); padding:14px 28px;}
+  .topbar-id .name{font-weight:600; font-size:14px;}
+  .topbar-id .cluster{font-size:12.5px; color:var(--ink-soft);}
+  .topbar-actions{display:flex; align-items:center; gap:14px;}
+  .save-indicator{font-size:12px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace;}
+
+  main.content{max-width:820px; margin:0 auto; padding:40px 28px 120px 28px;}
+  .doc-title{font-size:26px; margin-bottom:6px;}
+  .doc-intro{color:var(--ink-soft); font-size:13.5px; line-height:1.6; margin:16px 0 44px 0; padding:16px 18px; background:var(--paper-dim); border-radius:var(--radius);}
+
+  .section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; gap:12px; align-items:baseline; margin-bottom:8px;}
+  .section-head .num{font-family:'Fraunces',serif; font-size:15px; color:var(--accent);}
+  .section-head h2{font-size:20px;}
+
+  .q{margin-bottom:18px;}
+  .q > label{display:block; font-size:14px; font-weight:500; margin-bottom:8px; color:var(--ink);}
+  .q .hint{font-size:12.5px; color:var(--ink-faint); margin-bottom:8px;}
+  .q .example{font-size:12.5px; color:var(--slate); font-style:italic; margin-top:6px;}
+
+  .dyn-table{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-bottom:10px;}
+  .dyn-row{display:grid; gap:1px; background:var(--line);}
+  .dyn-row.head{background:var(--paper-dim);}
+  .dyn-row.head > div{background:var(--paper-dim); font-size:11.5px; font-weight:600; color:var(--ink-soft); padding:9px 10px; font-family:'IBM Plex Mono',monospace;}
+  .dyn-row > div{background:var(--card); padding:0;}
+  .dyn-row textarea{border:none; border-radius:0; background:transparent; padding:9px 10px; font-size:13px; min-height:38px; width:100%;}
+  .dyn-row textarea:focus{box-shadow:none; background:var(--slate-soft);}
+  .dyn-row .rm-cell{display:flex; align-items:center; justify-content:center;}
+  .rm-btn{background:none; border:none; color:#8A3B33; cursor:pointer; font-size:16px; line-height:1; padding:4px;}
+  .add-row-btn{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--slate); background:none; border:none; cursor:pointer; padding:8px 2px; font-weight:600;}
+
+  .checklist{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-bottom:12px; background:var(--card);}
+  .check-row{display:flex; align-items:center; gap:12px; padding:11px 14px; border-bottom:1px solid var(--line); font-size:13.5px;}
+  .check-row:last-child{border-bottom:none;}
+  .check-row input{width:auto; accent-color:var(--accent-deep);}
+
+  .num-q{display:flex; gap:12px; align-items:flex-start; margin-bottom:12px;}
+  .num-q .n{font-family:'Fraunces',serif; font-size:16px; color:var(--accent); width:22px; padding-top:9px; flex-shrink:0;}
+  .num-q input{flex:1;}
+
+  .section-footer{display:flex; justify-content:space-between; align-items:center; margin-top:22px; padding-top:16px; border-top:1px solid var(--line);}
+  .footer-hint{font-size:12px; color:var(--ink-faint);}
+
+  .end-card{background:var(--paper-dim); border:1px solid var(--line); border-radius:var(--radius); padding:26px 28px; margin-top:8px;}
+  .end-card h3{font-size:17px; margin-bottom:8px;}
+  .end-card p{font-size:13.5px; color:var(--ink-soft); margin:0 0 16px 0;}
+  .end-actions{display:flex; gap:10px; flex-wrap:wrap;}
+
+  @media(max-width:700px){ main.content{padding:28px 16px 100px 16px;} }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-eyebrow">ОПИСАНИЕ ЗОНЫ ОТВЕТСТВЕННОСТИ</div>
+    <h1>Описание зоны ответственности члена Совета директоров</h1>
+    <div class="gate-intro">
+      Цель документа — зафиксировать ваш текущий взгляд на зону ответственности: за какие результаты вы отвечаете, какие направления и задачи ведёте, какие решения принимаете и где видите стыки с коллегами.<br><br>
+      На этом этапе не нужно согласовывать формулировки с другими членами совета или описывать идеальную модель. Важно отразить фактическую картину так, как вы её видите сегодня.
+    </div>
+
+    <div class="field"><label for="in-name">Ваше имя</label>
+      <input type="text" id="in-name" placeholder="Например: Пётр"></div>
+    <div class="field"><label for="in-cluster">Название зоны / кластера</label>
+      <input type="text" id="in-cluster" placeholder="Например: ИТ и Право"></div>
+    <button class="btn btn-primary" id="btn-start">Начать →</button>
+
+    <div class="gate-existing" id="gate-existing" style="display:none;">
+      <h3>Уже начатые описания на этом устройстве</h3>
+      <div id="resp-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-id">
+      <div class="name" id="tb-name">—</div>
+      <div class="cluster" id="tb-cluster">—</div>
+    </div>
+    <div class="topbar-actions">
+      <span class="save-indicator" id="save-indicator">не сохранено</span>
+      <button class="btn btn-ghost btn-small" id="btn-switch">Сменить участника</button>
+    </div>
+  </div>
+  <main class="content" id="content"></main>
+</div>
+
+<script>
+/* ================= STRUCTURE ================= */
+const CHECKLIST_ITEMS = [
+  "Формирую цели и приоритеты кластера",
+  "Принимаю ключевые решения по направлению",
+  "Утверждаю бюджет или распределяю ресурсы",
+  "Назначаю, развиваю или заменяю руководителей",
+  "Контролирую ключевые показатели и результаты",
+  "Координирую работу со смежными кластерами",
+  "Веду ключевые внешние отношения / партнёров",
+  "Лично участвую в операционной работе"
+];
+
+const SECTIONS = [
+  {id:"s1", num:"01", title:"Моя зона ответственности", render:renderS1},
+  {id:"s2", num:"02", title:"Задачи кластера", render:renderS2},
+  {id:"s3", num:"03", title:"Моя роль как лидера кластера", render:renderS3},
+  {id:"s4", num:"04", title:"Решения и полномочия", render:renderS4},
+  {id:"s5", num:"05", title:"Стыки и спорные зоны", render:renderS5},
+  {id:"s6", num:"06", title:"Главное для обсуждения на стратсессии", render:renderS6},
+];
+
+function renderS1(){
+  return `
+    <div class="q"><label>Член СД</label>
+      <textarea data-key="s1_name" oninput="onField(this)" style="min-height:38px;"></textarea>
+    </div>
+    <div class="q"><label>Название зоны / кластера</label>
+      <textarea data-key="s1_zone" oninput="onField(this)" style="min-height:38px;"></textarea>
+    </div>
+    <div class="q"><label>Какие направления, подразделения, проекты или процессы входят в зону</label>
+      ${dynTable("s1_dir", ["Направление","Что входит в направление","Кто ведёт операционно"], [1,1.4,1])}
+    </div>
+    <div class="q"><label>Одним предложением: за какой результат компании я отвечаю через эту зону?</label>
+      <textarea data-key="s1_result" oninput="onField(this)"></textarea>
+      <div class="example">Пример: «Обеспечиваю, чтобы компания имела устойчивую ИТ-платформу, юридически защищённые решения и достаточную скорость цифрового развития».</div>
+    </div>
+  `;
+}
+
+function renderS2(){
+  return `
+    <div class="q"><label>Какие постоянные задачи выполняет мой кластер?</label>
+      <div class="hint">3–7 пунктов — только основные, без детализации всех процессов.</div>
+      ${dynTable("s2_ongoing", ["Задача кластера","Ожидаемый результат"], [1.3,1])}
+    </div>
+    <div class="q"><label>Какие ключевые задачи / изменения ведёт кластер в ближайший год?</label>
+      ${dynTable("s2_year", ["Задача","Результат","Ориентировочный срок"], [1.3,1.1,0.8])}
+    </div>
+  `;
+}
+
+function renderS3(){
+  const items = CHECKLIST_ITEMS.map((t,i)=>`
+    <div class="check-row">
+      <input type="checkbox" id="s3_chk_${i}" data-key="s3_chk_${i}" onchange="onField(this)">
+      <label for="s3_chk_${i}" style="margin:0;font-weight:400;">${t}</label>
+    </div>`).join("");
+  return `
+    <div class="q"><label>Что я делаю лично как член СД и лидер этой зоны?</label>
+      <div class="hint">Отметьте нужное и дополните при необходимости.</div>
+      <div class="checklist">${items}</div>
+      <textarea data-key="s3_chk_other" oninput="onField(this)" placeholder="Другое"></textarea>
+    </div>
+    <div class="q"><label>Что в этой зоне я делегировал операционной команде, а что оставляю за собой?</label>
+      ${dynTable("s3_deleg", ["Делегировано команде","Оставляю за собой"], [1,1])}
+    </div>
+  `;
+}
+
+function renderS4(){
+  return `
+    <div class="q"><label>Какие решения я принимаю самостоятельно?</label>
+      <div class="hint">3–7 наиболее значимых типов решений.</div>
+      ${dynTable("s4_dec", ["Тип решения","Решаю сам / согласую с кем-то","Если согласую — с кем"], [1.2,1.1,1])}
+    </div>
+    <div class="q"><label>Каких полномочий, ресурсов или данных мне сегодня не хватает для нормального управления зоной?</label>
+      <textarea data-key="s4_lack" oninput="onField(this)"></textarea>
+      <div class="example">Можно указать: бюджетный лимит, право кадрового решения, право выбора подрядчика, доступ к данным, выделенная команда, право подписи, понятный порядок эскалации.</div>
+    </div>
+  `;
+}
+
+function renderS5(){
+  return `
+    <div class="q"><label>С какими зонами коллег моя ответственность пересекается?</label>
+      <div class="hint">Только реальные и существенные пересечения.</div>
+      ${dynTable("s5_overlap", ["Вопрос / решение","С кем пересекается","Как устроено сейчас","Как, на мой взгляд, должно быть"], [1,0.8,1,1])}
+    </div>
+    <div class="q"><label>Что, по вашему мнению, находится вне вашей зоны ответственности, но регулярно к вам попадает?</label>
+      <textarea data-key="s5_outside" oninput="onField(this)"></textarea>
+    </div>
+  `;
+}
+
+function renderS6(){
+  return `
+    <div class="q"><label>Какие 3 вопроса по вашей зоне особенно важно согласовать на общей сессии?</label></div>
+    <div class="num-q"><span class="n">1</span><input type="text" data-key="s6_q1" oninput="onField(this)"></div>
+    <div class="num-q"><span class="n">2</span><input type="text" data-key="s6_q2" oninput="onField(this)"></div>
+    <div class="num-q"><span class="n">3</span><input type="text" data-key="s6_q3" oninput="onField(this)"></div>
+  `;
+}
+
+/* dynamic table helper */
+function dynTable(id, cols, colWidths){
+  window["_dyn_"+id] = {cols, colWidths, counter:0};
+  const gridTemplate = colWidths.map(w=>`${w}fr`).join(" ") + " 40px";
+  return `
+    <div class="dyn-table" id="${id}">
+      <div class="dyn-row head" style="grid-template-columns:${gridTemplate};">
+        ${cols.map(c=>`<div>${c}</div>`).join("")}<div></div>
+      </div>
+      <div id="${id}_rows">${dynRowHtml(id,0)}${dynRowHtml(id,1)}${dynRowHtml(id,2)}</div>
+    </div>
+    <button type="button" class="add-row-btn" onclick="addDynRow('${id}')">+ добавить строку</button>
+  `;
+}
+function dynRowHtml(id,i){
+  const meta = window["_dyn_"+id];
+  const gridTemplate = meta.colWidths.map(w=>`${w}fr`).join(" ") + " 40px";
+  const key = `${id}_r${i}`;
+  meta.counter = Math.max(meta.counter, i+1);
+  const cells = meta.cols.map((c,ci)=>`<div><textarea data-key="${key}_c${ci}" oninput="onField(this)"></textarea></div>`).join("");
+  return `<div class="dyn-row" style="grid-template-columns:${gridTemplate};" data-row="${key}">
+    ${cells}
+    <div class="rm-cell"><button type="button" class="rm-btn" onclick="removeRow('${id}_rows','${key}')" title="Удалить строку">✕</button></div>
+  </div>`;
+}
+function addDynRow(id){
+  const meta = window["_dyn_"+id];
+  const i = meta.counter;
+  document.getElementById(id+"_rows").insertAdjacentHTML("beforeend", dynRowHtml(id,i));
+}
+function removeRow(wrapId, rowKey){
+  const wrap = document.getElementById(wrapId);
+  const row = wrap.querySelector(`[data-row="${rowKey}"]`);
+  if(row){
+    row.querySelectorAll("[data-key]").forEach(el=>{ delete answers[el.dataset.key]; });
+    row.remove();
+    scheduleSave();
+  }
+}
+
+/* ================= STATE ================= */
+let respondentId=null, respondentName="", respondentCluster="", answers={}, saveTimer=null;
+
+function slugify(s){
+  return s.trim().toLowerCase().replace(/[^a-zа-я0-9]+/gi,"-").replace(/^-+|-+$/g,"") || ("r"+Date.now());
+}
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ================= STORAGE (локально, в браузере) ================= */
+function lsGet(key){ try{ const v = localStorage.getItem(key); return v===null? null : v; }catch(e){ return null; } }
+function lsSet(key, value){ try{ localStorage.setItem(key, value); return true; }catch(e){ console.error(e); return false; } }
+function loadIndex(){
+  const r = lsGet("zone_respondents_index");
+  if(!r) return [];
+  try{ return JSON.parse(r); }catch(e){ return []; }
+}
+function saveIndex(list){ lsSet("zone_respondents_index", JSON.stringify(list)); }
+function upsertIndex(entry){
+  const list = loadIndex();
+  const existing = list.find(x=>x.id===entry.id);
+  if(existing){ Object.assign(existing, entry); } else { list.push(entry); }
+  saveIndex(list);
+}
+
+/* ================= GATE ================= */
+function initGate(){
+  const list = loadIndex();
+  if(list.length){
+    document.getElementById("gate-existing").style.display = "block";
+    document.getElementById("resp-list").innerHTML = list.map(r=>`
+      <div class="resp-row">
+        <span>${escapeHtml(r.name)} — <span style="color:var(--ink-soft)">${escapeHtml(r.cluster)}</span></span>
+        <button onclick="continueRespondent('${r.id}')">Продолжить →</button>
+      </div>`).join("");
+  }
+}
+window.continueRespondent = function(id){
+  const list = loadIndex();
+  const r = list.find(x=>x.id===id);
+  if(r) enterApp(r.id, r.name, r.cluster);
+};
+document.getElementById("btn-start").addEventListener("click", ()=>{
+  const name = document.getElementById("in-name").value.trim();
+  const cluster = document.getElementById("in-cluster").value.trim();
+  if(!name || !cluster){ alert("Укажите имя и название зоны."); return; }
+  const id = slugify(name);
+  upsertIndex({id,name,cluster,updated:Date.now()});
+  enterApp(id,name,cluster);
+});
+
+function enterApp(id,name,cluster){
+  respondentId=id; respondentName=name; respondentCluster=cluster;
+  const saved = lsGet("zone_response:"+id);
+  answers = {};
+  if(saved){ try{ answers = JSON.parse(saved); }catch(e){} }
+  document.getElementById("gate").style.display="none";
+  document.getElementById("app").style.display="block";
+  document.getElementById("tb-name").textContent=name;
+  document.getElementById("tb-cluster").textContent=cluster;
+  buildContent();
+  fillAnswersIntoDom();
+  // prefill s1 name/zone if empty
+  if(!answers.s1_name){ const el=document.querySelector('[data-key="s1_name"]'); if(el){el.value=name; answers.s1_name=name;} }
+  if(!answers.s1_zone){ const el=document.querySelector('[data-key="s1_zone"]'); if(el){el.value=cluster; answers.s1_zone=cluster;} }
+}
+
+function buildContent(){
+  const el = document.getElementById("content");
+  el.innerHTML = `
+    <div class="doc-title" style="font-family:'Fraunces',serif;">Описание зоны ответственности</div>
+    <div class="doc-intro">
+      Цель документа — зафиксировать ваш текущий взгляд на зону ответственности: за какие результаты вы отвечаете, какие направления и задачи ведёте, какие решения принимаете и где видите стыки с коллегами. На этом этапе не нужно согласовывать формулировки с другими членами совета или описывать идеальную модель — важна фактическая картина так, как вы её видите сегодня.
+    </div>
+  ` + SECTIONS.map((s,i)=>`
+    <section class="section" id="${s.id}">
+      <div class="section-head"><span class="num">${s.num}</span><h2>${s.title}</h2></div>
+      ${s.render()}
+      <div class="section-footer"><span class="footer-hint">${i+1} из ${SECTIONS.length}</span></div>
+    </section>
+  `).join("") + `
+    <div class="end-card">
+      <h3>Готово?</h3>
+      <p>Ответы сохраняются только в этом браузере. Нажмите кнопку ниже, чтобы собрать их в файл Excel и отправить тому, кто занимается сборкой описаний.</p>
+      <div class="end-actions">
+        <button class="btn btn-primary btn-small" onclick="exportExcel()">Скачать заполненную анкету (Excel)</button>
+        <button class="btn btn-ghost btn-small" id="btn-switch2">Заполнить за другого участника</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("btn-switch2").addEventListener("click", switchRespondent);
+}
+
+function fillAnswersIntoDom(){
+  ensureDynRowsExist();
+  document.querySelectorAll("[data-key]").forEach(el=>{
+    const k = el.dataset.key;
+    if(answers[k]===undefined) return;
+    if(el.type==="checkbox"){ el.checked = !!answers[k]; }
+    else { el.value = answers[k]; }
+  });
+}
+function ensureDynRowsExist(){
+  const dynIds = ["s1_dir","s2_ongoing","s2_year","s3_deleg","s4_dec","s5_overlap"];
+  dynIds.forEach(id=>{
+    const meta = window["_dyn_"+id];
+    if(!meta) return;
+    let maxIdx=-1;
+    Object.keys(answers).forEach(k=>{
+      const m = k.match(new RegExp(`^${id}_r(\\d+)_c`));
+      if(m) maxIdx = Math.max(maxIdx, parseInt(m[1]));
+    });
+    while(meta.counter <= maxIdx){
+      document.getElementById(id+"_rows").insertAdjacentHTML("beforeend", dynRowHtml(id, meta.counter));
+    }
+  });
+}
+
+function onField(el){
+  const k = el.dataset.key;
+  answers[k] = (el.type==="checkbox") ? el.checked : el.value;
+  scheduleSave();
+}
+function scheduleSave(){
+  document.getElementById("save-indicator").textContent = "сохранение…";
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(doSave, 400);
+}
+function doSave(){
+  lsSet("zone_response:"+respondentId, JSON.stringify(answers));
+  upsertIndex({id:respondentId, name:respondentName, cluster:respondentCluster, updated:Date.now()});
+  const t = new Date();
+  document.getElementById("save-indicator").textContent = "сохранено " + t.getHours().toString().padStart(2,"0")+":"+t.getMinutes().toString().padStart(2,"0");
+}
+
+document.getElementById("btn-switch").addEventListener("click", switchRespondent);
+function switchRespondent(){
+  document.getElementById("app").style.display="none";
+  document.getElementById("gate").style.display="flex";
+  document.getElementById("in-name").value="";
+  document.getElementById("in-cluster").value="";
+  initGate();
+}
+
+/* ================= EXPORT TO EXCEL ================= */
+function extractTableRows(prefix, ncols){
+  const rowsMap = {};
+  Object.keys(answers).forEach(k=>{
+    const m = k.match(new RegExp(`^${prefix}_r(\\d+)_c(\\d+)$`));
+    if(m){
+      const ri = parseInt(m[1]), ci = parseInt(m[2]);
+      if(!rowsMap[ri]) rowsMap[ri] = [];
+      rowsMap[ri][ci] = answers[k] || "";
+    }
+  });
+  const indices = Object.keys(rowsMap).map(Number).sort((a,b)=>a-b);
+  const rows = [];
+  indices.forEach(ri=>{
+    const src = rowsMap[ri];
+    const row = [];
+    for(let c=0;c<ncols;c++) row.push(src[c]||"");
+    if(row.some(v=>v && v.trim && v.trim().length>0)) rows.push(row);
+  });
+  return rows;
+}
+function sheetFromAoa(aoa){
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"] = [{wch:34},{wch:34},{wch:34},{wch:34}];
+  return ws;
+}
+function buildWorkbook(){
+  const wb = XLSX.utils.book_new();
+
+  // Обзор
+  const overview = [
+    ["Описание зоны ответственности"],
+    [],
+    ["Член СД", answers.s1_name || respondentName],
+    ["Название зоны / кластера", answers.s1_zone || respondentCluster],
+    ["За какой результат отвечаю", answers.s1_result || ""],
+    [],
+    ["Каких полномочий не хватает", answers.s4_lack || ""],
+    ["Что вне зоны, но регулярно попадает", answers.s5_outside || ""],
+    [],
+    ["Вопрос 1 для стратсессии", answers.s6_q1 || ""],
+    ["Вопрос 2 для стратсессии", answers.s6_q2 || ""],
+    ["Вопрос 3 для стратсессии", answers.s6_q3 || ""],
+  ];
+  XLSX.utils.book_append_sheet(wb, sheetFromAoa(overview), "Обзор");
+
+  // Направления
+  const dir = [["Направление","Что входит","Кто ведёт операционно"], ...extractTableRows("s1_dir",3)];
+  XLSX.utils.book_append_sheet(wb, sheetFromAoa(dir), "Направления зоны");
+
+  // Задачи
+  const tasks = [
+    ["Постоянные задачи"],
+    ["Задача кластера","Ожидаемый результат"],
+    ...extractTableRows("s2_ongoing",2),
+    [],
+    ["Задачи на ближайший год"],
+    ["Задача","Результат","Срок"],
+    ...extractTableRows("s2_year",3),
+  ];
+  XLSX.utils.book_append_sheet(wb, sheetFromAoa(tasks), "Задачи кластера");
+
+  // Роль лидера
+  const leader = [["Что делаю лично"], ["Пункт","Отмечено"]];
+  CHECKLIST_ITEMS.forEach((t,i)=> leader.push([t, answers["s3_chk_"+i] ? "Да" : "Нет"]));
+  if(answers.s3_chk_other) leader.push(["Другое", answers.s3_chk_other]);
+  leader.push([]);
+  leader.push(["Делегировано / оставляю за собой"]);
+  leader.push(["Делегировано команде","Оставляю за собой"]);
+  extractTableRows("s3_deleg",2).forEach(r=>leader.push(r));
+  XLSX.utils.book_append_sheet(wb, sheetFromAoa(leader), "Роль лидера");
+
+  // Решения
+  const dec = [["Тип решения","Решаю сам / согласую","Если согласую — с кем"], ...extractTableRows("s4_dec",3)];
+  XLSX.utils.book_append_sheet(wb, sheetFromAoa(dec), "Решения и полномочия");
+
+  // Стыки
+  const overlap = [["Вопрос / решение","С кем пересекается","Как устроено сейчас","Как должно быть"], ...extractTableRows("s5_overlap",4)];
+  XLSX.utils.book_append_sheet(wb, sheetFromAoa(overlap), "Стыки и спорные зоны");
+
+  return wb;
+}
+function exportExcel(){
+  const wb = buildWorkbook();
+  XLSX.writeFile(wb, `zona_${respondentId || "otvet"}.xlsx`);
+}
+
+initGate();
+</script>
+</body>
+</html>
