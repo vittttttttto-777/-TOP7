@@ -446,69 +446,79 @@ function extractTableRows(prefix, ncols){
   });
   return rows;
 }
-function sheetFromAoa(aoa){
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws["!cols"] = [{wch:34},{wch:34},{wch:34},{wch:34}];
-  return ws;
+
+// Собирает один лист, повторяющий анкету 1-в-1: раздел → вопрос → ответ,
+// в том же порядке, что и в самой форме.
+function buildFullAoa(){
+  const aoa = [];
+  const blank = ()=>aoa.push([]);
+  const sectionHead = (label)=>{ blank(); aoa.push([label]); blank(); };
+  const question = (label)=>{ aoa.push([label]); };
+  const answer = (value)=>{ aoa.push(["Ответ:", value || "—"]); blank(); };
+  const table = (headers, rows)=>{
+    aoa.push(headers);
+    if(rows.length){ rows.forEach(r=>aoa.push(r)); } else { aoa.push(["—"]); }
+    blank();
+  };
+
+  aoa.push(["ОПИСАНИЕ ЗОНЫ ОТВЕТСТВЕННОСТИ"]);
+  aoa.push([(answers.s1_name || respondentName) + " — " + (answers.s1_zone || respondentCluster)]);
+
+  // 01
+  sectionHead("01. МОЯ ЗОНА ОТВЕТСТВЕННОСТИ");
+  question("Член СД"); answer(answers.s1_name || respondentName);
+  question("Название зоны / кластера"); answer(answers.s1_zone || respondentCluster);
+  question("Какие направления, подразделения, проекты или процессы входят в зону");
+  table(["Направление","Что входит в направление","Кто ведёт операционно"], extractTableRows("s1_dir",3));
+  question("Одним предложением: за какой результат компании я отвечаю через эту зону?");
+  answer(answers.s1_result);
+
+  // 02
+  sectionHead("02. ЗАДАЧИ КЛАСТЕРА");
+  question("Какие постоянные задачи выполняет мой кластер?");
+  table(["Задача кластера","Ожидаемый результат"], extractTableRows("s2_ongoing",2));
+  question("Какие ключевые задачи / изменения ведёт кластер в ближайший год?");
+  table(["Задача","Результат","Ориентировочный срок"], extractTableRows("s2_year",3));
+
+  // 03
+  sectionHead("03. МОЯ РОЛЬ КАК ЛИДЕРА КЛАСТЕРА");
+  question("Что я делаю лично как член СД и лидер этой зоны?");
+  CHECKLIST_ITEMS.forEach((t,i)=> aoa.push([t, answers["s3_chk_"+i] ? "Да" : "Нет"]));
+  if(answers.s3_chk_other){ aoa.push(["Другое", answers.s3_chk_other]); }
+  blank();
+  question("Что в этой зоне я делегировал операционной команде, а что оставляю за собой?");
+  table(["Делегировано команде","Оставляю за собой"], extractTableRows("s3_deleg",2));
+
+  // 04
+  sectionHead("04. РЕШЕНИЯ И ПОЛНОМОЧИЯ");
+  question("Какие решения я принимаю самостоятельно?");
+  table(["Тип решения","Решаю сам / согласую с кем-то","Если согласую — с кем"], extractTableRows("s4_dec",3));
+  question("Каких полномочий, ресурсов или данных мне сегодня не хватает для нормального управления зоной?");
+  answer(answers.s4_lack);
+
+  // 05
+  sectionHead("05. СТЫКИ И СПОРНЫЕ ЗОНЫ");
+  question("С какими зонами коллег моя ответственность пересекается?");
+  table(["Вопрос / решение","С кем пересекается","Как устроено сейчас","Как, на мой взгляд, должно быть"], extractTableRows("s5_overlap",4));
+  question("Что, по вашему мнению, находится вне вашей зоны ответственности, но регулярно к вам попадает?");
+  answer(answers.s5_outside);
+
+  // 06
+  sectionHead("06. ГЛАВНОЕ ДЛЯ ОБСУЖДЕНИЯ НА СТРАТСЕССИИ");
+  question("Какие 3 вопроса по вашей зоне особенно важно согласовать на общей сессии?");
+  aoa.push(["1", answers.s6_q1 || "—"]);
+  aoa.push(["2", answers.s6_q2 || "—"]);
+  aoa.push(["3", answers.s6_q3 || "—"]);
+
+  return aoa;
 }
-function buildWorkbook(){
-  const wb = XLSX.utils.book_new();
 
-  // Обзор
-  const overview = [
-    ["Описание зоны ответственности"],
-    [],
-    ["Член СД", answers.s1_name || respondentName],
-    ["Название зоны / кластера", answers.s1_zone || respondentCluster],
-    ["За какой результат отвечаю", answers.s1_result || ""],
-    [],
-    ["Каких полномочий не хватает", answers.s4_lack || ""],
-    ["Что вне зоны, но регулярно попадает", answers.s5_outside || ""],
-    [],
-    ["Вопрос 1 для стратсессии", answers.s6_q1 || ""],
-    ["Вопрос 2 для стратсессии", answers.s6_q2 || ""],
-    ["Вопрос 3 для стратсессии", answers.s6_q3 || ""],
-  ];
-  XLSX.utils.book_append_sheet(wb, sheetFromAoa(overview), "Обзор");
-
-  // Направления
-  const dir = [["Направление","Что входит","Кто ведёт операционно"], ...extractTableRows("s1_dir",3)];
-  XLSX.utils.book_append_sheet(wb, sheetFromAoa(dir), "Направления зоны");
-
-  // Задачи
-  const tasks = [
-    ["Постоянные задачи"],
-    ["Задача кластера","Ожидаемый результат"],
-    ...extractTableRows("s2_ongoing",2),
-    [],
-    ["Задачи на ближайший год"],
-    ["Задача","Результат","Срок"],
-    ...extractTableRows("s2_year",3),
-  ];
-  XLSX.utils.book_append_sheet(wb, sheetFromAoa(tasks), "Задачи кластера");
-
-  // Роль лидера
-  const leader = [["Что делаю лично"], ["Пункт","Отмечено"]];
-  CHECKLIST_ITEMS.forEach((t,i)=> leader.push([t, answers["s3_chk_"+i] ? "Да" : "Нет"]));
-  if(answers.s3_chk_other) leader.push(["Другое", answers.s3_chk_other]);
-  leader.push([]);
-  leader.push(["Делегировано / оставляю за собой"]);
-  leader.push(["Делегировано команде","Оставляю за собой"]);
-  extractTableRows("s3_deleg",2).forEach(r=>leader.push(r));
-  XLSX.utils.book_append_sheet(wb, sheetFromAoa(leader), "Роль лидера");
-
-  // Решения
-  const dec = [["Тип решения","Решаю сам / согласую","Если согласую — с кем"], ...extractTableRows("s4_dec",3)];
-  XLSX.utils.book_append_sheet(wb, sheetFromAoa(dec), "Решения и полномочия");
-
-  // Стыки
-  const overlap = [["Вопрос / решение","С кем пересекается","Как устроено сейчас","Как должно быть"], ...extractTableRows("s5_overlap",4)];
-  XLSX.utils.book_append_sheet(wb, sheetFromAoa(overlap), "Стыки и спорные зоны");
-
-  return wb;
-}
 function exportExcel(){
-  const wb = buildWorkbook();
+  const aoa = buildFullAoa();
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"] = [{wch:52},{wch:40},{wch:30},{wch:30}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Ответы");
   XLSX.writeFile(wb, `zona_${respondentId || "otvet"}.xlsx`);
 }
 
